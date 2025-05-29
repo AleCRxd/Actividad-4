@@ -1,26 +1,28 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div id="app">
+    <PantallaBienvenida
+      v-if="mostrarBienvenida"
+      @irAlCrud="mostrarCrud = true; mostrarBienvenida = false"
+    />
+    <HojaDeVida v-if="mostrarCrud" />
+  </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import PantallaBienvenida from './components/PantallaBienvenida.vue';
+import HojaDeVida from './components/HojaDeVida.vue';
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
-  }
-}
+    PantallaBienvenida,
+    HojaDeVida,
+  },
+  data() {
+    return {
+      mostrarBienvenida: true,
+      mostrarCrud: false,
+    };
+  },
+};
 </script>
-
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
