@@ -58,22 +58,25 @@
 
     <div class="experiencias-container">
       <h3>EXPERIENCIAS PROFESIONALES</h3>
-      <form @submit.prevent="agregarExperiencia">
+      <form @submit.prevent="experienciaEnEdicion ? guardarEdicion() : agregarExperiencia()">
         <input v-model="nuevaExperiencia.empresa" placeholder="Empresa" required />
         <input v-model="nuevaExperiencia.titulo" placeholder="Título" required />
         <textarea v-model="nuevaExperiencia.descripcion" placeholder="Descripción" required></textarea>
         <input v-model="nuevaExperiencia.fechaInicio" type="date" required />
         <input v-model="nuevaExperiencia.fechaFin" type="date" required />
-        <button type="submit">Agregar Experiencia</button>
-      </form>
+        <button type="submit">
+          {{ experienciaEnEdicion ? 'Guardar Cambios' : 'Agregar Experiencia' }}
+        </button>
+    </form>
 
       <ul>
-        <li v-for="experiencia in experiencias" :key="experiencia.id">
+        <li v-for="experiencia in experiencias" :key="experiencia._id">
           <h4>{{ experiencia.titulo }}</h4>
           <p><strong>Empresa:</strong> {{ experiencia.empresa }}</p>
           <p>{{ experiencia.descripcion }}</p>
           <p><strong>Desde:</strong> {{ experiencia.fechaInicio }} <strong>Hasta:</strong> {{ experiencia.fechaFin }}</p>
-          <button @click="eliminarExperiencia(experiencia.id)">Eliminar</button>
+          <button @click="prepararEdicion(experiencia)">Editar</button>
+          <button @click="eliminarExperiencia(experiencia._id)">Eliminar</button>
         </li>
       </ul>
     </div>
@@ -81,29 +84,78 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
-  name: 'HojaDeVida',
   data() {
     return {
-      experiencias: [], 
+      experiencias: [],
       nuevaExperiencia: {
-        empresa: '', 
+        empresa: '',
         titulo: '',
         descripcion: '',
         fechaInicio: '',
         fechaFin: '',
       },
+      experienciaEnEdicion: null,
     };
   },
-  methods: {
-    agregarExperiencia() {
-      const nueva = { ...this.nuevaExperiencia, id: Date.now() };
-      this.experiencias.push(nueva);
+
+methods: {
+  async cargarExperiencias() {
+    try {
+      const response = await axios.get('http://localhost:3000/api/experiencias');
+      this.experiencias = response.data;
+    } catch (err) {
+      console.error('Error al cargar experiencias:', err);
+    }
+  },
+
+  async agregarExperiencia() {
+    try {
+      console.log('Método agregarExperiencia llamado');
+      const response = await axios.post('http://localhost:3000/api/experiencias', this.nuevaExperiencia);
+      this.experiencias.push(response.data);
       this.nuevaExperiencia = { empresa: '', titulo: '', descripcion: '', fechaInicio: '', fechaFin: '' };
-    },
-    eliminarExperiencia(id) {
-      this.experiencias = this.experiencias.filter((exp) => exp.id !== id);
-    },
+    } catch (err) {
+      console.error('Error al agregar experiencia:', err);
+    }
+  },
+
+  prepararEdicion(experiencia) {
+    this.experienciaEnEdicion = { ...experiencia };
+    this.nuevaExperiencia = { ...experiencia };
+  },
+
+  async guardarEdicion() {
+    if (!this.experienciaEnEdicion) return;
+
+    try {
+      const response = await axios.put(
+        `http://localhost:3000/api/experiencias/${this.experienciaEnEdicion._id}`,
+        this.nuevaExperiencia
+      );
+      this.experiencias = this.experiencias.map((exp) =>
+        exp._id === this.experienciaEnEdicion._id ? response.data : exp
+      );
+      this.nuevaExperiencia = { empresa: '', titulo: '', descripcion: '', fechaInicio: '', fechaFin: '' };
+      this.experienciaEnEdicion = null;
+    } catch (err) {
+      console.error('Error al guardar la edición:', err);
+    }
+  },
+
+  async eliminarExperiencia(id) {
+    try {
+      await axios.delete(`http://localhost:3000/api/experiencias/${id}`);
+      this.experiencias = this.experiencias.filter((exp) => exp._id !== id);
+    } catch (err) {
+      console.error('Error al eliminar experiencia:', err);
+    }
+  },
+},
+  mounted() {
+    this.cargarExperiencias();
   },
 };
 </script>
