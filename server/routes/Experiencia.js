@@ -1,13 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const Experiencia = require('../models/Experiencia');
+const Experiencia = require('../models/Experiencia'); 
 
 router.get('/', async (req, res) => {
   try {
     const experiencias = await Experiencia.find();
     res.json(experiencias);
   } catch (err) {
-    res.status(500).json({ error: 'Error al obtener las experiencias' });
+    console.error('Error al obtener experiencias:', err);
+    res.status(500).json({ error: 'Error al obtener experiencias' });
   }
 });
 
@@ -17,16 +18,22 @@ router.post('/', async (req, res) => {
     const experienciaGuardada = await nuevaExperiencia.save();
     res.status(201).json(experienciaGuardada);
   } catch (err) {
-    res.status(400).json({ error: 'Error al crear la experiencia' });
+    console.error('Error al guardar experiencia:', err);
+    res.status(500).json({ error: 'Error al guardar experiencia' });
   }
 });
 
 router.put('/:id', async (req, res) => {
   try {
-    const experienciaActualizada = await Experiencia.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const experienciaActualizada = await Experiencia.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
     res.json(experienciaActualizada);
   } catch (err) {
-    res.status(400).json({ error: 'Error al actualizar la experiencia' });
+    console.error('Error al actualizar experiencia:', err);
+    res.status(500).json({ error: 'Error al actualizar experiencia' });
   }
 });
 
@@ -35,7 +42,8 @@ router.delete('/:id', async (req, res) => {
     await Experiencia.findByIdAndDelete(req.params.id);
     res.json({ message: 'Experiencia eliminada' });
   } catch (err) {
-    res.status(400).json({ error: 'Error al eliminar la experiencia' });
+    console.error('Error al eliminar experiencia:', err);
+    res.status(500).json({ error: 'Error al eliminar experiencia' });
   }
 });
 
